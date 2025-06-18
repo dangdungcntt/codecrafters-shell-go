@@ -21,7 +21,7 @@ func NewCommand(raw string) Command {
 func (c Command) parse() (string, string, error) {
 	parts := strings.SplitN(c.raw, " ", 2)
 	if len(parts) == 0 {
-		return "", nil, errors.New("empty command")
+		return "", "", errors.New("empty command")
 	}
 
 	var args string
