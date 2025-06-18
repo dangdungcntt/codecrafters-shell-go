@@ -18,15 +18,15 @@ func NewCommand(raw string) Command {
 	}
 }
 
-func (c Command) parse() (string, []string, error) {
+func (c Command) parse() (string, string, error) {
 	parts := strings.SplitN(c.raw, " ", 2)
 	if len(parts) == 0 {
 		return "", nil, errors.New("empty command")
 	}
 
-	var args []string
+	var args string
 	if len(parts) == 2 {
-		args = strings.Split(parts[1], " ")
+		args = parts[1]
 	}
 
 	return parts[0], args, nil
@@ -38,11 +38,11 @@ func (c Command) Execute() {
 
 	switch executable {
 	case "exit":
-		code, err := strconv.Atoi(args[0])
+		code, err := strconv.Atoi(args)
 		assertNoError(err)
 		os.Exit(code)
 	case "echo":
-		fmt.Fprint(os.Stdout, args[0], "\n")
+		fmt.Fprint(os.Stdout, args, "\n")
 	default:
 		fmt.Println(c.raw + ": command not found")
 	}
