@@ -20,7 +20,12 @@ func Pwd(_ []string) {
 }
 
 func Cd(args []string) {
-	newPath := path.Join(State.Pwd, args[0])
+	var newPath string
+	if strings.HasPrefix(args[0], "/") {
+		newPath = args[0]
+	} else {
+		newPath = path.Join(State.Pwd, args[0])
+	}
 	if !IsExist(newPath) {
 		writeToConsole(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
 		return
