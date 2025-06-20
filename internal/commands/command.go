@@ -18,7 +18,7 @@ var CommandMap = map[string]func(args []string) CommandInterface{
 func NewCommand(executable string, args []string) CommandInterface {
 	constructor, found := CommandMap[executable]
 	if !found {
-		return NewNotFoundHandler(executable, args)
+		return NewExternal(executable, args)
 	}
 
 	return constructor(args)
