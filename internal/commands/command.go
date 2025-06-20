@@ -1,10 +1,22 @@
 package commands
 
 import (
-	"fmt"
 	"log"
 	"os"
 )
+
+var State = struct {
+	Pwd string
+}{}
+
+func Init() {
+	RegisterCommand("echo", Echo)
+	RegisterCommand("type", Type)
+	RegisterCommand("exit", Exit)
+	RegisterCommand("pwd", Pwd)
+	RegisterCommand("cd", Cd)
+	State.Pwd, _ = os.Getwd()
+}
 
 var CommandMap = map[string]func(args []string){}
 
@@ -30,19 +42,4 @@ func ExecuteCommand(executable string, args []string) {
 	}
 
 	executor(args)
-}
-
-func assertNoError(err error) {
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-}
-
-func writeToConsole(args ...string) {
-	for _, arg := range args {
-		fmt.Fprint(os.Stdout, arg)
-	}
-
-	fmt.Fprint(os.Stdout, "\n")
 }

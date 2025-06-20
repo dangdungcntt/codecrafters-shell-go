@@ -4,16 +4,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 )
-
-func InitBuiltinCommands() {
-	RegisterCommand("echo", Echo)
-	RegisterCommand("type", Type)
-	RegisterCommand("exit", Exit)
-	RegisterCommand("pwd", Pwd)
-}
 
 func Exit(args []string) {
 	code, err := strconv.Atoi(args[0])
@@ -22,8 +16,17 @@ func Exit(args []string) {
 }
 
 func Pwd(_ []string) {
-	dir, _ := os.Getwd()
-	writeToConsole(dir)
+	writeToConsole(State.Pwd)
+}
+
+func Cd(args []string) {
+	newPath := path.Join(State.Pwd, args[0])
+	if !IsExist(newPath) {
+		writeToConsole(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
+		return
+	}
+
+	State.Pwd = newPath
 }
 
 func Echo(args []string) {

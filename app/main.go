@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	commands.InitBuiltinCommands()
-	
+	commands.Init()
+
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 
