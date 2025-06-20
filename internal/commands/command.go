@@ -2,26 +2,34 @@ package commands
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
-type CommandInterface interface {
-	Execute()
+var CommandMap = map[string]func(args []string){}
+
+func IsBuiltin(name string) bool {
+	_, found := CommandMap[name]
+	return found
 }
 
-var CommandMap = map[string]func(args []string) CommandInterface{
-	"echo": NewEcho,
-	"exit": NewExit,
-	"type": NewType,
-}
-
-func NewCommand(executable string, args []string) CommandInterface {
-	constructor, found := CommandMap[executable]
-	if !found {
-		return NewExternal(executable, args)
+func RegisterCommand(name string, executor func(args []string)) {
+	_, found := CommandMap[name]
+	if found {
+		log.Fatal("command " + name + " already existed")
 	}
 
-	return constructor(args)
+	CommandMap[name] = executor
+}
+
+func ExecuteCommand(executable string, args []string) {
+	executor, found := CommandMap[executable]
+	if !found {
+		RunExternalApp(executable, args)
+		return
+	}
+
+	executor(args)
 }
 
 func assertNoError(err error) {

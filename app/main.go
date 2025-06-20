@@ -10,6 +10,8 @@ import (
 )
 
 func main() {
+	commands.InitBuiltinCommands()
+	
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 
@@ -27,7 +29,7 @@ func main() {
 			args = argv[1:]
 		}
 
-		commands.NewCommand(argv[0], args).Execute()
+		commands.ExecuteCommand(argv[0], args)
 	}
 }
 
