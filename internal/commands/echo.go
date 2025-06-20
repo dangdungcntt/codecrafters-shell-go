@@ -1,10 +1,5 @@
 package commands
 
-import (
-	"fmt"
-	"os"
-)
-
 var _ CommandInterface = Echo{}
 
 type Echo struct {
@@ -18,5 +13,5 @@ func NewEcho(args string) CommandInterface {
 }
 
 func (e Echo) Execute() {
-	fmt.Fprint(os.Stdout, e.args, "\n")
+	writeToConsole(e.args)
 }

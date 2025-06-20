@@ -12,6 +12,7 @@ type CommandInterface interface {
 var CommandMap = map[string]func(args string) CommandInterface{
 	"echo": NewEcho,
 	"exit": NewExit,
+	"type": NewType,
 }
 
 func NewCommand(executable string, args string) CommandInterface {
@@ -28,4 +29,12 @@ func assertNoError(err error) {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func writeToConsole(args ...string) {
+	for _, arg := range args {
+		fmt.Fprint(os.Stdout, arg)
+	}
+
+	fmt.Fprint(os.Stdout, "\n")
 }
