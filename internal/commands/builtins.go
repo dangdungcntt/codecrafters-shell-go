@@ -21,9 +21,15 @@ func Pwd(_ []string) {
 
 func Cd(args []string) {
 	var newPath string
-	if strings.HasPrefix(args[0], "/") {
+	switch {
+	case strings.HasPrefix(args[0], "/"):
 		newPath = args[0]
-	} else {
+	case strings.HasPrefix(args[0], "~"):
+		newPath = os.Getenv("HOME")
+		if len(args[0]) > 1 {
+			newPath += args[0][1:]
+		}
+	default:
 		newPath = path.Join(State.Pwd, args[0])
 	}
 	if !IsExist(newPath) {
