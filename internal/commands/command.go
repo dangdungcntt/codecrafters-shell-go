@@ -1,51 +1,26 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 )
 
-type Command struct {
-	raw string
+type CommandInterface interface {
+	Execute()
 }
 
-func NewCommand(raw string) Command {
-	return Command{
-		raw: strings.TrimSuffix(raw, "\n"),
-	}
+var CommandMap = map[string]func(args string) CommandInterface{
+	"echo": NewEcho,
+	"exit": NewExit,
 }
 
-func (c Command) parse() (string, string, error) {
-	parts := strings.SplitN(c.raw, " ", 2)
-	if len(parts) == 0 {
-		return "", "", errors.New("empty command")
+func NewCommand(executable string, args string) CommandInterface {
+	constructor, found := CommandMap[executable]
+	if !found {
+		return NewNotFoundHandler(executable, args)
 	}
 
-	var args string
-	if len(parts) == 2 {
-		args = parts[1]
-	}
-
-	return parts[0], args, nil
-}
-
-func (c Command) Execute() {
-	executable, args, err := c.parse()
-	assertNoError(err)
-
-	switch executable {
-	case "exit":
-		code, err := strconv.Atoi(args)
-		assertNoError(err)
-		os.Exit(code)
-	case "echo":
-		fmt.Fprint(os.Stdout, args, "\n")
-	default:
-		fmt.Println(c.raw + ": command not found")
-	}
+	return constructor(args)
 }
 
 func assertNoError(err error) {
