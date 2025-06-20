@@ -8,17 +8,17 @@ import (
 var _ CommandInterface = Exit{}
 
 type Exit struct {
-	args string
+	args []string
 }
 
-func NewExit(args string) CommandInterface {
+func NewExit(args []string) CommandInterface {
 	return Exit{
 		args: args,
 	}
 }
 
 func (e Exit) Execute() {
-	code, err := strconv.Atoi(e.args)
+	code, err := strconv.Atoi(e.args[0])
 	assertNoError(err)
 	os.Exit(code)
 }

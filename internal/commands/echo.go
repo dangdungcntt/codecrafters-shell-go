@@ -1,17 +1,19 @@
 package commands
 
+import "strings"
+
 var _ CommandInterface = Echo{}
 
 type Echo struct {
-	args string
+	args []string
 }
 
-func NewEcho(args string) CommandInterface {
+func NewEcho(args []string) CommandInterface {
 	return Echo{
 		args: args,
 	}
 }
 
 func (e Echo) Execute() {
-	writeToConsole(e.args)
+	writeToConsole(strings.Join(e.args, " "))
 }

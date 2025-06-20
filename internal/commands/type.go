@@ -1,23 +1,47 @@
 package commands
 
+import (
+	"fmt"
+	"os"
+	"strings"
+)
+
 var _ CommandInterface = Type{}
 
 type Type struct {
-	args string
+	args []string
 }
 
-func NewType(args string) CommandInterface {
+func NewType(args []string) CommandInterface {
 	return Type{
 		args: args,
 	}
 }
 
 func (e Type) Execute() {
-	_, found := CommandMap[e.args]
+	bin := e.args[0]
+	_, found := CommandMap[bin]
 	if found {
-		writeToConsole(e.args + " is a shell builtin")
+		writeToConsole(bin + " is a shell builtin")
 		return
 	}
 
-	writeToConsole(e.args + ": not found")
+	if file, exists := findBinInPath(bin); exists {
+		writeToConsole(fmt.Sprintf("%s is %s", bin, file))
+		return
+	}
+
+	writeToConsole(bin + ": not found")
+}
+
+func findBinInPath(bin string) (string, bool) {
+	paths := os.Getenv("PATH")
+	for _, path := range strings.Split(paths, ":") {
+		file := path + "/" + bin
+		if _, err := os.Stat(file); err == nil {
+			return file, true
+		}
+	}
+
+	return "", false
 }

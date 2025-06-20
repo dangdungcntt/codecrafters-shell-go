@@ -20,13 +20,14 @@ func main() {
 			os.Exit(1)
 		}
 
-		executable, args, err := parse(raw)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error parse command:", err)
-			os.Exit(1)
+		argv := strings.Fields(raw)
+
+		var args []string
+		if len(argv) > 1 {
+			args = argv[1:]
 		}
 
-		commands.NewCommand(executable, args).Execute()
+		commands.NewCommand(argv[0], args).Execute()
 	}
 }
 

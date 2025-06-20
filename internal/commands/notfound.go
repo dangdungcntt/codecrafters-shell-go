@@ -4,10 +4,10 @@ import "fmt"
 
 type NotFound struct {
 	executable string
-	args       string
+	args       []string
 }
 
-func NewNotFoundHandler(executable string, args string) CommandInterface {
+func NewNotFoundHandler(executable string, args []string) CommandInterface {
 	return NotFound{
 		executable: executable,
 		args:       args,

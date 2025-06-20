@@ -9,13 +9,13 @@ type CommandInterface interface {
 	Execute()
 }
 
-var CommandMap = map[string]func(args string) CommandInterface{
+var CommandMap = map[string]func(args []string) CommandInterface{
 	"echo": NewEcho,
 	"exit": NewExit,
 	"type": NewType,
 }
 
-func NewCommand(executable string, args string) CommandInterface {
+func NewCommand(executable string, args []string) CommandInterface {
 	constructor, found := CommandMap[executable]
 	if !found {
 		return NewNotFoundHandler(executable, args)
