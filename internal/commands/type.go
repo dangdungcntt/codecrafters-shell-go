@@ -14,7 +14,7 @@ func NewType(args string) CommandInterface {
 
 func (e Type) Execute() {
 	_, found := CommandMap[e.args]
-	if found && e.args != "type" {
+	if found {
 		writeToConsole(e.args + " is a shell builtin")
 		return
 	}
