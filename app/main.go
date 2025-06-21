@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/codecrafters-io/shell-starter-go/internal/commands"
 	"os"
@@ -22,7 +21,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		argv := strings.Fields(raw)
+		argv := parseCommand(raw)
 
 		var args []string
 		if len(argv) > 1 {
@@ -33,17 +32,53 @@ func main() {
 	}
 }
 
-func parse(raw string) (string, string, error) {
-	raw = strings.TrimSuffix(raw, "\n")
-	parts := strings.SplitN(raw, " ", 2)
-	if len(parts) == 0 {
-		return "", "", errors.New("empty command")
+func parseCommand(cmd string) []string {
+	cmd = strings.TrimSuffix(cmd, "\n")
+
+	var args []string
+	var currentArg strings.Builder
+	var inSingleQuote, inDoubleQuote bool
+	var escapeNext bool
+
+	for _, char := range cmd {
+		if escapeNext {
+			currentArg.WriteRune(char)
+			escapeNext = false
+			continue
+		}
+
+		switch char {
+		case '\\':
+			escapeNext = true
+		case '\'':
+			if !inDoubleQuote {
+				inSingleQuote = !inSingleQuote
+			} else {
+				currentArg.WriteRune(char)
+			}
+		case '"':
+			if !inSingleQuote {
+				inDoubleQuote = !inDoubleQuote
+			} else {
+				currentArg.WriteRune(char)
+			}
+		case ' ':
+			if inSingleQuote || inDoubleQuote {
+				currentArg.WriteRune(char)
+			} else {
+				if currentArg.Len() > 0 {
+					args = append(args, currentArg.String())
+					currentArg.Reset()
+				}
+			}
+		default:
+			currentArg.WriteRune(char)
+		}
 	}
 
-	var args string
-	if len(parts) == 2 {
-		args = parts[1]
+	if currentArg.Len() > 0 {
+		args = append(args, currentArg.String())
 	}
 
-	return parts[0], args, nil
+	return args
 }
