@@ -5,9 +5,37 @@ import (
 	"os"
 )
 
-var State = struct {
-	Pwd string
-}{}
+type ShellState struct {
+	dirHistories []string
+	cwd          string
+}
+
+func NewShellState() *ShellState {
+	cwd, _ := os.Getwd()
+	return &ShellState{
+		cwd: cwd,
+	}
+}
+
+func (s *ShellState) Chdir(path string) {
+	assertNoError(os.Chdir(path))
+	s.dirHistories = append(s.dirHistories, s.cwd)
+	s.cwd = path
+}
+
+func (s *ShellState) ToPreDir() {
+	if len(s.dirHistories) == 0 {
+		return
+	}
+
+	s.Chdir(s.dirHistories[len(s.dirHistories)-1])
+}
+
+func (s *ShellState) Cwd() string {
+	return s.cwd
+}
+
+var State = NewShellState()
 
 func Init() {
 	RegisterCommand("echo", Echo)
@@ -15,7 +43,6 @@ func Init() {
 	RegisterCommand("exit", Exit)
 	RegisterCommand("pwd", Pwd)
 	RegisterCommand("cd", Cd)
-	State.Pwd, _ = os.Getwd()
 }
 
 var CommandMap = map[string]func(args []string){}

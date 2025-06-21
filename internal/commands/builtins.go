@@ -16,28 +16,31 @@ func Exit(args []string) {
 }
 
 func Pwd(_ []string) {
-	writeToConsole(State.Pwd)
+	writeToConsole(State.Cwd())
 }
 
 func Cd(args []string) {
-	var newPath string
+	var targetPath string
 	switch {
-	case strings.HasPrefix(args[0], "/"):
-		newPath = args[0]
-	case strings.HasPrefix(args[0], "~"):
-		newPath = os.Getenv("HOME")
-		if len(args[0]) > 1 {
-			newPath += args[0][1:]
+	case len(args) == 0 || strings.HasPrefix(args[0], "~"):
+		targetPath, _ = os.UserHomeDir()
+		if len(args) > 0 && len(args[0]) > 1 {
+			targetPath += args[0][1:]
 		}
+	case args[0] == "-":
+		State.ToPreDir()
+		return
+	case strings.HasPrefix(args[0], "/"):
+		targetPath = args[0]
 	default:
-		newPath = path.Join(State.Pwd, args[0])
+		targetPath = path.Join(State.Cwd(), args[0])
 	}
-	if !IsExist(newPath) {
+	if !IsExist(targetPath) {
 		writeToConsole(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
 		return
 	}
 
-	State.Pwd = newPath
+	State.Chdir(targetPath)
 }
 
 func Echo(args []string) {
