@@ -43,11 +43,19 @@ func parseCommand(raw string) []string {
 	for _, c := range raw {
 
 		switch {
+		case escaped && inDoubleQuote:
+			if c == '$' || c == '"' || c == '\\' {
+				current.WriteRune(c)
+			} else {
+				current.WriteRune('\\')
+				current.WriteRune(c)
+			}
+			escaped = false
 		case escaped:
 			current.WriteRune(c)
 			escaped = false
 
-		case c == '\\' && !inDoubleQuote && !inSingleQuote:
+		case c == '\\' && !inSingleQuote:
 			escaped = true
 
 		case c == '\'' && !inDoubleQuote:
