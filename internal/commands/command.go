@@ -83,7 +83,7 @@ func ExecuteCommand(executable string, args []string, output io.Writer) {
 	}
 	executor, found := CommandMap[executable]
 	if !found {
-		RunExternalApp(executable, args)
+		RunExternalApp(executable, args, State.GetOutput())
 		return
 	}
 

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -62,11 +63,11 @@ func Type(args []string) {
 	writeToOutput(bin + ": not found")
 }
 
-func RunExternalApp(executable string, args []string) {
+func RunExternalApp(executable string, args []string, output io.Writer) {
 	_, found := findBinInPath(executable)
 	if found {
 		cmd := exec.Command(executable, args...)
-		cmd.Stdout = os.Stdout
+		cmd.Stdout = output
 		cmd.Stderr = os.Stderr
 		cmd.Run()
 	} else {
