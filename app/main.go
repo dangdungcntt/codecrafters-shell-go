@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/codecrafters-io/shell-starter-go/internal/commands"
+	"io"
 	"os"
 	"strings"
 	"unicode"
@@ -24,12 +25,28 @@ func main() {
 
 		argv := parseCommand(raw)
 
+		var outputFile io.WriteCloser
+		for i, arg := range argv {
+			if (arg == ">" || arg == "1>") && i+1 < len(argv) {
+				if outputFile, err = os.Create(argv[i+1]); err != nil {
+					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
+					os.Exit(1)
+				}
+				argv = argv[:i]
+				break
+			}
+		}
+
 		var args []string
 		if len(argv) > 1 {
 			args = argv[1:]
 		}
 
-		commands.ExecuteCommand(argv[0], args)
+		commands.ExecuteCommand(argv[0], args, outputFile)
+
+		if outputFile != nil {
+			outputFile.Close()
+		}
 	}
 }
 

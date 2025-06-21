@@ -1,20 +1,33 @@
 package commands
 
 import (
+	"io"
 	"log"
 	"os"
 )
 
 type ShellState struct {
-	dirHistories []string
-	cwd          string
+	dirHistories  []string
+	cwd           string
+	currentOutput io.Writer
 }
 
 func NewShellState() *ShellState {
 	cwd, _ := os.Getwd()
 	return &ShellState{
-		cwd: cwd,
+		cwd:           cwd,
+		currentOutput: os.Stdout,
 	}
+}
+
+func (s *ShellState) GetOutput() io.Writer {
+	return s.currentOutput
+}
+
+func (s *ShellState) SetOutput(w io.Writer) io.Writer {
+	c := s.currentOutput
+	s.currentOutput = w
+	return c
 }
 
 func (s *ShellState) Chdir(path string) {
@@ -61,7 +74,13 @@ func RegisterCommand(name string, executor func(args []string)) {
 	CommandMap[name] = executor
 }
 
-func ExecuteCommand(executable string, args []string) {
+func ExecuteCommand(executable string, args []string, output io.Writer) {
+	if output != nil {
+		old := State.SetOutput(output)
+		defer func() {
+			State.SetOutput(old)
+		}()
+	}
 	executor, found := CommandMap[executable]
 	if !found {
 		RunExternalApp(executable, args)

@@ -16,7 +16,7 @@ func Exit(args []string) {
 }
 
 func Pwd(_ []string) {
-	writeToConsole(State.Cwd())
+	writeToOutput(State.Cwd())
 }
 
 func Cd(args []string) {
@@ -36,7 +36,7 @@ func Cd(args []string) {
 		targetPath = path.Join(State.Cwd(), args[0])
 	}
 	if !IsExist(targetPath) {
-		writeToConsole(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
+		writeToOutput(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
 		return
 	}
 
@@ -44,22 +44,22 @@ func Cd(args []string) {
 }
 
 func Echo(args []string) {
-	writeToConsole(strings.Join(args, " "))
+	writeToOutput(strings.Join(args, " "))
 }
 
 func Type(args []string) {
 	bin := args[0]
 	if IsBuiltin(bin) {
-		writeToConsole(bin + " is a shell builtin")
+		writeToOutput(bin + " is a shell builtin")
 		return
 	}
 
 	if file, exists := findBinInPath(bin); exists {
-		writeToConsole(fmt.Sprintf("%s is %s", bin, file))
+		writeToOutput(fmt.Sprintf("%s is %s", bin, file))
 		return
 	}
 
-	writeToConsole(bin + ": not found")
+	writeToOutput(bin + ": not found")
 }
 
 func RunExternalApp(executable string, args []string) {
@@ -70,6 +70,6 @@ func RunExternalApp(executable string, args []string) {
 		cmd.Stderr = os.Stderr
 		cmd.Run()
 	} else {
-		writeToConsole(executable + ": command not found")
+		writeToOutput(executable + ": command not found")
 	}
 }

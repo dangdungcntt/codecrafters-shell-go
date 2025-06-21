@@ -30,10 +30,11 @@ func assertNoError(err error) {
 	}
 }
 
-func writeToConsole(args ...string) {
+func writeToOutput(args ...string) {
+	output := State.GetOutput()
 	for _, arg := range args {
-		fmt.Fprint(os.Stdout, arg)
+		fmt.Fprint(output, arg)
 	}
 
-	fmt.Fprint(os.Stdout, "\n")
+	fmt.Fprint(output, "\n")
 }
