@@ -51,7 +51,7 @@ func (c *customCompleter) Do(line []rune, pos int) (newLine [][]rune, length int
 	for i, runes := range newLine {
 		fmt.Printf("%s%s", word, string(runes))
 		if i < matches-1 {
-			fmt.Printf("  ")
+			fmt.Printf(" ")
 		}
 	}
 
