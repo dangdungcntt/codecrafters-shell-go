@@ -52,8 +52,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		println(raw)
-
 		argv := parseCommand(raw)
 
 		var outputFile, errorFile io.WriteCloser
