@@ -15,6 +15,9 @@ import (
 )
 
 func main() {
+	defer func() {
+		commands.WriteHistory(true)
+	}()
 	allCommands := commands.Init()
 	slices.SortStableFunc(allCommands, func(a, b string) int {
 		return cmp.Compare(a, b)

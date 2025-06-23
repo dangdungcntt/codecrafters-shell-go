@@ -63,6 +63,44 @@ func initHistory() {
 	for scanner.Scan() {
 		AddCommandToHistory(scanner.Text())
 	}
+
+	LastInitHistoryIndex = len(CommandHistory) - 1
+}
+
+func WriteHistory(isAppend bool) {
+	// Get history file path
+	filePath := os.Getenv("HISTFILE")
+	if filePath == "" {
+		return
+	}
+	flags := os.O_RDWR | os.O_CREATE
+	if isAppend {
+		flags = flags | os.O_APPEND
+	} else {
+		flags = flags | os.O_TRUNC
+	}
+	nFile, err := os.OpenFile(filePath, flags, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer nFile.Close()
+
+	var message string
+	for i, line := range CommandHistory {
+		if isAppend && i <= LastAppendHistoryIndex {
+			continue
+		}
+		if i != len(CommandHistory)-1 {
+			message += line + "\n"
+		} else {
+			message += line
+		}
+	}
+	_, err = fmt.Fprintln(nFile, message)
+	if err != nil {
+		fmt.Println("Error write file:", err)
+	}
 }
 
 type CommandHandler interface {
@@ -72,6 +110,7 @@ type CommandHandler interface {
 var CommandMap = map[string]CommandHandler{}
 var CommandHistory = make([]string, 0, 10)
 var LastAppendHistoryIndex = -1
+var LastInitHistoryIndex = -1
 
 func AddCommandToHistory(cmd string) {
 	CommandHistory = append(CommandHistory, cmd)
