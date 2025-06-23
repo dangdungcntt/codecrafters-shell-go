@@ -25,10 +25,19 @@ func main() {
 
 		argv := parseCommand(raw)
 
-		var outputFile io.WriteCloser
+		var outputFile, errorFile io.WriteCloser
 		for i, arg := range argv {
 			if (arg == ">" || arg == "1>") && i+1 < len(argv) {
 				if outputFile, err = os.Create(argv[i+1]); err != nil {
+					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
+					os.Exit(1)
+				}
+				argv = argv[:i]
+				break
+			}
+
+			if arg == "2>" && i+1 < len(argv) {
+				if errorFile, err = os.Create(argv[i+1]); err != nil {
 					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
 					os.Exit(1)
 				}
@@ -42,10 +51,14 @@ func main() {
 			args = argv[1:]
 		}
 
-		commands.ExecuteCommand(argv[0], args, outputFile)
+		commands.ExecuteCommand(argv[0], args, outputFile, errorFile)
 
 		if outputFile != nil {
 			outputFile.Close()
+		}
+
+		if errorFile != nil {
+			errorFile.Close()
 		}
 	}
 }

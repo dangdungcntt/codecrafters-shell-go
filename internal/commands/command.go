@@ -7,26 +7,38 @@ import (
 )
 
 type ShellState struct {
-	dirHistories  []string
-	cwd           string
-	currentOutput io.Writer
+	dirHistories []string
+	cwd          string
+	outputWriter io.Writer
+	errorWriter  io.Writer
 }
 
 func NewShellState() *ShellState {
 	cwd, _ := os.Getwd()
 	return &ShellState{
-		cwd:           cwd,
-		currentOutput: os.Stdout,
+		cwd:          cwd,
+		outputWriter: os.Stdout,
+		errorWriter:  os.Stderr,
 	}
 }
 
-func (s *ShellState) GetOutput() io.Writer {
-	return s.currentOutput
+func (s *ShellState) GetOutputWriter() io.Writer {
+	return s.outputWriter
 }
 
-func (s *ShellState) SetOutput(w io.Writer) io.Writer {
-	c := s.currentOutput
-	s.currentOutput = w
+func (s *ShellState) SetOutputWriter(w io.Writer) io.Writer {
+	c := s.outputWriter
+	s.outputWriter = w
+	return c
+}
+
+func (s *ShellState) GetErrorWriter() io.Writer {
+	return s.errorWriter
+}
+
+func (s *ShellState) SetErrorWriter(w io.Writer) io.Writer {
+	c := s.errorWriter
+	s.errorWriter = w
 	return c
 }
 
@@ -74,16 +86,24 @@ func RegisterCommand(name string, executor func(args []string)) {
 	CommandMap[name] = executor
 }
 
-func ExecuteCommand(executable string, args []string, output io.Writer) {
-	if output != nil {
-		old := State.SetOutput(output)
+func ExecuteCommand(executable string, args []string, outputWriter io.Writer, errorWriter io.Writer) {
+	if outputWriter != nil {
+		old := State.SetOutputWriter(outputWriter)
 		defer func() {
-			State.SetOutput(old)
+			State.SetOutputWriter(old)
 		}()
 	}
+
+	if errorWriter != nil {
+		old := State.SetErrorWriter(errorWriter)
+		defer func() {
+			State.SetErrorWriter(old)
+		}()
+	}
+
 	executor, found := CommandMap[executable]
 	if !found {
-		RunExternalApp(executable, args, State.GetOutput())
+		RunExternalApp(executable, args)
 		return
 	}
 

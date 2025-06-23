@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -17,7 +16,7 @@ func Exit(args []string) {
 }
 
 func Pwd(_ []string) {
-	writeToOutput(State.Cwd())
+	writeOutput(State.Cwd())
 }
 
 func Cd(args []string) {
@@ -37,7 +36,7 @@ func Cd(args []string) {
 		targetPath = path.Join(State.Cwd(), args[0])
 	}
 	if !IsExist(targetPath) {
-		writeToOutput(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
+		writeError(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
 		return
 	}
 
@@ -45,32 +44,32 @@ func Cd(args []string) {
 }
 
 func Echo(args []string) {
-	writeToOutput(strings.Join(args, " "))
+	writeOutput(strings.Join(args, " "))
 }
 
 func Type(args []string) {
 	bin := args[0]
 	if IsBuiltin(bin) {
-		writeToOutput(bin + " is a shell builtin")
+		writeOutput(bin + " is a shell builtin")
 		return
 	}
 
 	if file, exists := findBinInPath(bin); exists {
-		writeToOutput(fmt.Sprintf("%s is %s", bin, file))
+		writeOutput(fmt.Sprintf("%s is %s", bin, file))
 		return
 	}
 
-	writeToOutput(bin + ": not found")
+	writeError(bin + ": not found")
 }
 
-func RunExternalApp(executable string, args []string, output io.Writer) {
+func RunExternalApp(executable string, args []string) {
 	_, found := findBinInPath(executable)
 	if found {
 		cmd := exec.Command(executable, args...)
-		cmd.Stdout = output
-		cmd.Stderr = os.Stderr
+		cmd.Stdout = State.GetOutputWriter()
+		cmd.Stderr = State.GetErrorWriter()
 		cmd.Run()
 	} else {
-		writeToOutput(executable + ": command not found")
+		writeError(executable + ": command not found")
 	}
 }
