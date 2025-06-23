@@ -15,6 +15,24 @@ import (
 
 const TerminalBell = "\x07"
 
+type customCompleter struct {
+	prefixCompleter *readline.PrefixCompleter
+}
+
+func (c *customCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
+	newLine, length = c.prefixCompleter.Do(line, pos)
+	matches := len(newLine)
+	if matches == 0 || matches > 1 {
+		fmt.Print(TerminalBell)
+		if matches > 1 {
+			word := string(line[:pos])
+			fmt.Println()
+			fmt.Print("$ " + word)
+		}
+	}
+	return
+}
+
 func main() {
 	allCommands := commands.Init()
 	slices.SortStableFunc(allCommands, func(a, b string) int {
@@ -25,20 +43,10 @@ func main() {
 	for _, cmd := range allCommands {
 		completerList = append(completerList, readline.PcItem(cmd))
 	}
-	completerList = append(completerList, readline.PcItemDynamic(func(s string) []string {
-		matchCount := 0
-		for _, cmd := range allCommands {
-			if strings.HasPrefix(cmd, s) {
-				matchCount++
-			}
-		}
-		if matchCount == 0 || matchCount > 1 {
-			fmt.Print(TerminalBell)
-		}
-		return nil
-	}))
 
-	autoCompleter := readline.NewPrefixCompleter(completerList...)
+	autoCompleter := &customCompleter{
+		prefixCompleter: readline.NewPrefixCompleter(completerList...),
+	}
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
 		AutoComplete: autoCompleter,
