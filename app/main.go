@@ -17,19 +17,39 @@ const TerminalBell = "\x07"
 
 type customCompleter struct {
 	prefixCompleter *readline.PrefixCompleter
+	lastPrefix      string
+	tabCount        int
 }
 
 func (c *customCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
 	newLine, length = c.prefixCompleter.Do(line, pos)
 	matches := len(newLine)
-	if matches == 0 || matches > 1 {
+	word := string(line[:pos])
+	if matches == 0 {
 		fmt.Print(TerminalBell)
-		if matches > 1 {
-			word := string(line[:pos])
-			fmt.Println()
-			fmt.Print("$ " + word)
-		}
+		return
 	}
+	if matches == 1 {
+		c.tabCount = 0
+		return
+	}
+
+	if word == c.lastPrefix {
+		c.tabCount++
+	} else {
+		c.tabCount = 1
+	}
+
+	c.lastPrefix = word
+	if c.tabCount == 1 {
+		fmt.Print(TerminalBell)
+		return nil, 0
+	}
+
+	fmt.Println()
+	fmt.Print("$ " + word)
+	c.tabCount = 0
+
 	return
 }
 
