@@ -72,8 +72,10 @@ func Init() []string {
 	RegisterCommand("cd", Cd)
 
 	allCommandsMap := make(map[string]struct{}, len(CommandMap))
+	allCommands := make([]string, 0, len(allCommandsMap))
 	for c := range CommandMap {
 		allCommandsMap[c] = struct{}{}
+		allCommands = append(allCommands, c)
 	}
 
 	for _, dirPath := range strings.Split(os.Getenv("PATH"), ":") {
@@ -90,12 +92,8 @@ func Init() []string {
 				continue
 			}
 			allCommandsMap[name] = struct{}{}
+			allCommands = append(allCommands, name)
 		}
-	}
-
-	allCommands := make([]string, 0, len(allCommandsMap))
-	for c := range allCommandsMap {
-		allCommands = append(allCommands, c)
 	}
 
 	return allCommands
