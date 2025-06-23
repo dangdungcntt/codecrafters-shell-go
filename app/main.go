@@ -11,13 +11,29 @@ import (
 	"unicode"
 )
 
+const TerminalBell = "\x07"
+
 func main() {
 	commands.Init()
 
-	autoCompleter := readline.NewPrefixCompleter(
-		readline.PcItem("exit"),
-		readline.PcItem("echo"),
-	)
+	autoCompleteCommands := []string{
+		"exit", "echo",
+	}
+	completers := make([]readline.PrefixCompleterInterface, 0, len(autoCompleteCommands)+1)
+	for _, cmd := range autoCompleteCommands {
+		completers = append(completers, readline.PcItem(cmd))
+	}
+	completers = append(completers, readline.PcItemDynamic(func(s string) []string {
+		for _, cmd := range autoCompleteCommands {
+			if strings.HasPrefix(cmd, s) {
+				return nil
+			}
+		}
+		fmt.Print(TerminalBell)
+		return nil
+	}))
+
+	autoCompleter := readline.NewPrefixCompleter(completers...)
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
 		AutoComplete: autoCompleter,
@@ -35,6 +51,8 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
+
+		println(raw)
 
 		argv := parseCommand(raw)
 
