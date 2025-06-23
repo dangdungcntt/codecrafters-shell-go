@@ -70,9 +70,6 @@ func Init() []string {
 	RegisterCommand("exit", Exit)
 	RegisterCommand("pwd", Pwd)
 	RegisterCommand("cd", Cd)
-	RegisterCommand("xyz_baz", Cd)
-	RegisterCommand("xyz_baz_bar", Cd)
-	RegisterCommand("xyz_baz_bar_quz", Cd)
 
 	allCommandsMap := make(map[string]struct{}, len(CommandMap))
 	allCommands := make([]string, 0, len(allCommandsMap))
