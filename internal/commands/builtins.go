@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
@@ -71,12 +72,25 @@ func Type(ctx *ShellContext, args []string) {
 func History(ctx *ShellContext, args []string) {
 	var histories []string
 	var baseIndex int
-	if len(args) == 0 {
+	switch {
+	case len(args) == 0:
 		histories = CommandHistory
-	} else {
+	case len(args) == 1:
 		limit, _ := strconv.Atoi(args[0])
 		baseIndex = limit + 1
 		histories = CommandHistory[max(0, len(CommandHistory)-limit):]
+	case len(args) == 2 && args[0] == "-r":
+		// read history from file
+		file, err := os.OpenFile(args[1], os.O_APPEND|os.O_CREATE|os.O_RDONLY, 0644)
+		if err != nil {
+			fmt.Println("Error opening file:", err)
+			return
+		}
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			AddCommandToHistory(scanner.Text())
+		}
 	}
 	for i, cmd := range histories {
 		ctx.WriteOutput(fmt.Sprintf("%5d %s", baseIndex+i+1, cmd))
