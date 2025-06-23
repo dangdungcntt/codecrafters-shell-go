@@ -8,49 +8,60 @@ import (
 	"strings"
 )
 
-type ShellState struct {
+type ShellContext struct {
 	dirHistories []string
 	cwd          string
-	outputWriter io.Writer
-	errorWriter  io.Writer
+	stdin        io.Reader
+	stdout       io.Writer
+	stderr       io.Writer
 }
 
-func NewShellState() *ShellState {
+func NewShellContext(stdin io.Reader, stdout io.Writer, stderr io.Writer) *ShellContext {
 	cwd, _ := os.Getwd()
-	return &ShellState{
-		cwd:          cwd,
-		outputWriter: os.Stdout,
-		errorWriter:  os.Stderr,
+
+	if stdout == nil {
+		stdout = os.Stdout
+	}
+
+	if stderr == nil {
+		stderr = os.Stderr
+	}
+
+	return &ShellContext{
+		cwd:    cwd,
+		stdin:  stdin,
+		stdout: stdout,
+		stderr: stderr,
 	}
 }
 
-func (s *ShellState) GetOutputWriter() io.Writer {
-	return s.outputWriter
+func (s *ShellContext) GetOutputWriter() io.Writer {
+	return s.stdout
 }
 
-func (s *ShellState) SetOutputWriter(w io.Writer) io.Writer {
-	c := s.outputWriter
-	s.outputWriter = w
+func (s *ShellContext) SetOutputWriter(w io.Writer) io.Writer {
+	c := s.stdout
+	s.stdout = w
 	return c
 }
 
-func (s *ShellState) GetErrorWriter() io.Writer {
-	return s.errorWriter
+func (s *ShellContext) GetErrorWriter() io.Writer {
+	return s.stderr
 }
 
-func (s *ShellState) SetErrorWriter(w io.Writer) io.Writer {
-	c := s.errorWriter
-	s.errorWriter = w
+func (s *ShellContext) SetErrorWriter(w io.Writer) io.Writer {
+	c := s.stderr
+	s.stderr = w
 	return c
 }
 
-func (s *ShellState) Chdir(path string) {
-	assertNoError(os.Chdir(path))
+func (s *ShellContext) Chdir(path string) {
+	s.AssertNoError(os.Chdir(path))
 	s.dirHistories = append(s.dirHistories, s.cwd)
 	s.cwd = path
 }
 
-func (s *ShellState) ToPreDir() {
+func (s *ShellContext) ToPreDir() {
 	if len(s.dirHistories) == 0 {
 		return
 	}
@@ -58,18 +69,39 @@ func (s *ShellState) ToPreDir() {
 	s.Chdir(s.dirHistories[len(s.dirHistories)-1])
 }
 
-func (s *ShellState) Cwd() string {
+func (s *ShellContext) Cwd() string {
 	return s.cwd
 }
 
-var State = NewShellState()
+func (s *ShellContext) WriteOutput(args ...string) {
+	for _, arg := range args {
+		fmt.Fprint(s.stdout, arg)
+	}
+
+	fmt.Fprint(s.stdout, "\n")
+}
+
+func (s *ShellContext) WriteError(args ...string) {
+	for _, arg := range args {
+		fmt.Fprint(s.stderr, arg)
+	}
+
+	fmt.Fprint(s.stderr, "\n")
+}
+
+func (s *ShellContext) AssertNoError(err error) {
+	if err != nil {
+		fmt.Fprintln(s.stderr, err)
+		os.Exit(1)
+	}
+}
 
 func Init() []string {
-	RegisterCommand("echo", Echo)
-	RegisterCommand("type", Type)
-	RegisterCommand("exit", Exit)
-	RegisterCommand("pwd", Pwd)
-	RegisterCommand("cd", Cd)
+	RegisterCommand("echo", BuiltinHandler(Echo))
+	RegisterCommand("type", BuiltinHandler(Type))
+	RegisterCommand("exit", BuiltinHandler(Exit))
+	RegisterCommand("pwd", BuiltinHandler(Pwd))
+	RegisterCommand("cd", BuiltinHandler(Cd))
 
 	allCommandsMap := make(map[string]struct{}, len(CommandMap))
 	allCommands := make([]string, 0, len(allCommandsMap))
@@ -99,14 +131,18 @@ func Init() []string {
 	return allCommands
 }
 
-var CommandMap = map[string]func(args []string){}
+type CommandHandler interface {
+	Execute(ctx *ShellContext, args []string)
+}
+
+var CommandMap = map[string]CommandHandler{}
 
 func IsBuiltin(name string) bool {
 	_, found := CommandMap[name]
 	return found
 }
 
-func RegisterCommand(name string, executor func(args []string)) {
+func RegisterCommand(name string, executor CommandHandler) {
 	_, found := CommandMap[name]
 	if found {
 		log.Fatal("command " + name + " already existed")
@@ -115,26 +151,13 @@ func RegisterCommand(name string, executor func(args []string)) {
 	CommandMap[name] = executor
 }
 
-func ExecuteCommand(executable string, args []string, outputWriter io.Writer, errorWriter io.Writer) {
-	if outputWriter != nil {
-		old := State.SetOutputWriter(outputWriter)
-		defer func() {
-			State.SetOutputWriter(old)
-		}()
-	}
-
-	if errorWriter != nil {
-		old := State.SetErrorWriter(errorWriter)
-		defer func() {
-			State.SetErrorWriter(old)
-		}()
-	}
-
-	executor, found := CommandMap[executable]
+func ExecuteCommand(executable string, args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) {
+	ctx := NewShellContext(stdin, stdout, stderr)
+	cmd, found := CommandMap[executable]
 	if !found {
-		RunExternalApp(executable, args)
+		RunExternalApp(ctx, executable, args)
 		return
 	}
 
-	executor(args)
+	cmd.Execute(ctx, args)
 }

@@ -9,17 +9,23 @@ import (
 	"strings"
 )
 
-func Exit(args []string) {
+type BuiltinHandler func(ctx *ShellContext, args []string)
+
+func (b BuiltinHandler) Execute(ctx *ShellContext, args []string) {
+	b(ctx, args)
+}
+
+func Exit(ctx *ShellContext, args []string) {
 	code, err := strconv.Atoi(args[0])
-	assertNoError(err)
+	ctx.AssertNoError(err)
 	os.Exit(code)
 }
 
-func Pwd(_ []string) {
-	writeOutput(State.Cwd())
+func Pwd(ctx *ShellContext, _ []string) {
+	ctx.WriteError(ctx.Cwd())
 }
 
-func Cd(args []string) {
+func Cd(ctx *ShellContext, args []string) {
 	var targetPath string
 	switch {
 	case len(args) == 0 || strings.HasPrefix(args[0], "~"):
@@ -28,48 +34,49 @@ func Cd(args []string) {
 			targetPath += args[0][1:]
 		}
 	case args[0] == "-":
-		State.ToPreDir()
+		ctx.ToPreDir()
 		return
 	case strings.HasPrefix(args[0], "/"):
 		targetPath = args[0]
 	default:
-		targetPath = path.Join(State.Cwd(), args[0])
+		targetPath = path.Join(ctx.Cwd(), args[0])
 	}
 	if !IsExist(targetPath) {
-		writeError(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
+		ctx.WriteError(fmt.Sprintf("cd: %s: No such file or directory", args[0]))
 		return
 	}
 
-	State.Chdir(targetPath)
+	ctx.Chdir(targetPath)
 }
 
-func Echo(args []string) {
-	writeOutput(strings.Join(args, " "))
+func Echo(ctx *ShellContext, args []string) {
+	ctx.WriteOutput(strings.Join(args, " "))
 }
 
-func Type(args []string) {
+func Type(ctx *ShellContext, args []string) {
 	bin := args[0]
 	if IsBuiltin(bin) {
-		writeOutput(bin + " is a shell builtin")
+		ctx.WriteOutput(bin + " is a shell builtin")
 		return
 	}
 
 	if file, exists := findBinInPath(bin); exists {
-		writeOutput(fmt.Sprintf("%s is %s", bin, file))
+		ctx.WriteOutput(fmt.Sprintf("%s is %s", bin, file))
 		return
 	}
 
-	writeError(bin + ": not found")
+	ctx.WriteError(bin + ": not found")
 }
 
-func RunExternalApp(executable string, args []string) {
+func RunExternalApp(ctx *ShellContext, executable string, args []string) {
 	_, found := findBinInPath(executable)
 	if found {
 		cmd := exec.Command(executable, args...)
-		cmd.Stdout = State.GetOutputWriter()
-		cmd.Stderr = State.GetErrorWriter()
+		cmd.Stdin = ctx.stdin
+		cmd.Stdout = ctx.stdout
+		cmd.Stderr = ctx.stderr
 		cmd.Run()
 	} else {
-		writeError(executable + ": command not found")
+		ctx.WriteError(executable + ": command not found")
 	}
 }
