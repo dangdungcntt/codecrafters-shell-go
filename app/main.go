@@ -1,12 +1,14 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"github.com/chzyer/readline"
 	"github.com/codecrafters-io/shell-starter-go/internal/commands"
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -15,6 +17,9 @@ const TerminalBell = "\x07"
 
 func main() {
 	allCommands := commands.Init()
+	slices.SortStableFunc(allCommands, func(a, b string) int {
+		return cmp.Compare(a, b)
+	})
 
 	completerList := make([]readline.PrefixCompleterInterface, 0, len(allCommands)+1)
 	for _, cmd := range allCommands {
