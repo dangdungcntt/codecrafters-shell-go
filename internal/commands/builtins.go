@@ -91,8 +91,14 @@ func History(ctx *ShellContext, args []string) {
 		for scanner.Scan() {
 			AddCommandToHistory(scanner.Text())
 		}
-	case len(args) == 2 && args[0] == "-w":
-		file, err := os.OpenFile(args[1], os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	case len(args) == 2 && (args[0] == "-w" || args[0] == "-a"):
+		flags := os.O_WRONLY | os.O_CREATE
+		if args[0] == "-a" {
+			flags = flags | os.O_APPEND
+		} else {
+			flags = flags | os.O_TRUNC
+		}
+		file, err := os.OpenFile(args[1], flags, 0644)
 		if err != nil {
 			fmt.Println("Error opening file:", err)
 			return
