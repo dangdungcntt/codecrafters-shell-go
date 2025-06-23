@@ -36,8 +36,26 @@ func main() {
 				break
 			}
 
+			if (arg == ">>" || arg == "1>>") && i+1 < len(argv) {
+				if outputFile, err = os.OpenFile(argv[i+1], os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666); err != nil {
+					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
+					os.Exit(1)
+				}
+				argv = argv[:i]
+				break
+			}
+
 			if arg == "2>" && i+1 < len(argv) {
 				if errorFile, err = os.Create(argv[i+1]); err != nil {
+					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
+					os.Exit(1)
+				}
+				argv = argv[:i]
+				break
+			}
+
+			if arg == "2>>" && i+1 < len(argv) {
+				if errorFile, err = os.OpenFile(argv[i+1], os.O_RDWR|os.O_APPEND|os.O_CREATE, 0666); err != nil {
 					fmt.Fprintf(os.Stderr, "Error creating file: %v\n", err)
 					os.Exit(1)
 				}
