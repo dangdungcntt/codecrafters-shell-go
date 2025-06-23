@@ -1,10 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"github.com/chzyer/readline"
 	"github.com/codecrafters-io/shell-starter-go/internal/commands"
 	"io"
+	"log"
 	"os"
 	"strings"
 	"unicode"
@@ -13,11 +14,23 @@ import (
 func main() {
 	commands.Init()
 
+	autoCompleter := readline.NewPrefixCompleter(
+		readline.PcItem("exit"),
+		readline.PcItem("echo"),
+	)
+	l, err := readline.NewEx(&readline.Config{
+		Prompt:       "$ ",
+		AutoComplete: autoCompleter,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 
 		// Wait for user input
-		raw, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		raw, err := l.Readline()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
