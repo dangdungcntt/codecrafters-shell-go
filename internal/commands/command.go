@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -15,6 +16,8 @@ func Init() []string {
 	RegisterCommand("pwd", BuiltinHandler(Pwd))
 	RegisterCommand("cd", BuiltinHandler(Cd))
 	RegisterCommand("history", BuiltinHandler(History))
+
+	initHistory()
 
 	allCommandsMap := make(map[string]struct{}, len(CommandMap))
 	allCommands := make([]string, 0, len(allCommandsMap))
@@ -42,6 +45,24 @@ func Init() []string {
 	}
 
 	return allCommands
+}
+
+func initHistory() {
+	// Get history file path
+	filePath := os.Getenv("HISTFILE")
+	if filePath == "" {
+		return
+	}
+	nFile, err := os.OpenFile(filePath, os.O_RDONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+
+	scanner := bufio.NewScanner(nFile)
+	for scanner.Scan() {
+		AddCommandToHistory(scanner.Text())
+	}
 }
 
 type CommandHandler interface {
