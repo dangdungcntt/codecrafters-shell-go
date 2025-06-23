@@ -14,17 +14,14 @@ import (
 const TerminalBell = "\x07"
 
 func main() {
-	commands.Init()
+	allCommands := commands.Init()
 
-	autoCompleteCommands := []string{
-		"exit", "echo",
+	completerList := make([]readline.PrefixCompleterInterface, 0, len(allCommands)+1)
+	for _, cmd := range allCommands {
+		completerList = append(completerList, readline.PcItem(cmd))
 	}
-	completers := make([]readline.PrefixCompleterInterface, 0, len(autoCompleteCommands)+1)
-	for _, cmd := range autoCompleteCommands {
-		completers = append(completers, readline.PcItem(cmd))
-	}
-	completers = append(completers, readline.PcItemDynamic(func(s string) []string {
-		for _, cmd := range autoCompleteCommands {
+	completerList = append(completerList, readline.PcItemDynamic(func(s string) []string {
+		for _, cmd := range allCommands {
 			if strings.HasPrefix(cmd, s) {
 				return nil
 			}
@@ -33,7 +30,7 @@ func main() {
 		return nil
 	}))
 
-	autoCompleter := readline.NewPrefixCompleter(completers...)
+	autoCompleter := readline.NewPrefixCompleter(completerList...)
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
 		AutoComplete: autoCompleter,

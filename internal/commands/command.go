@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 type ShellState struct {
@@ -62,12 +64,41 @@ func (s *ShellState) Cwd() string {
 
 var State = NewShellState()
 
-func Init() {
+func Init() []string {
 	RegisterCommand("echo", Echo)
 	RegisterCommand("type", Type)
 	RegisterCommand("exit", Exit)
 	RegisterCommand("pwd", Pwd)
 	RegisterCommand("cd", Cd)
+
+	allCommandsMap := make(map[string]struct{}, len(CommandMap))
+	for c := range CommandMap {
+		allCommandsMap[c] = struct{}{}
+	}
+
+	for _, dirPath := range strings.Split(os.Getenv("PATH"), ":") {
+		files, err := os.ReadDir(dirPath)
+		if err != nil {
+			fmt.Errorf("error during reading dir: %v \n", err.Error())
+			continue
+		}
+
+		for _, entry := range files {
+			name := entry.Name()
+			_, ok := allCommandsMap[name]
+			if ok {
+				continue
+			}
+			allCommandsMap[name] = struct{}{}
+		}
+	}
+
+	allCommands := make([]string, 0, len(allCommandsMap))
+	for c := range allCommandsMap {
+		allCommands = append(allCommands, c)
+	}
+
+	return allCommands
 }
 
 var CommandMap = map[string]func(args []string){}
