@@ -14,7 +14,7 @@ type CustomCompleter struct {
 }
 
 func (c *CustomCompleter) Do(line []rune, pos int) ([][]rune, int) {
-	newLine, _ := c.PrefixCompleter.Do(line, pos)
+	newLine, length := c.PrefixCompleter.Do(line, pos)
 	matches := len(newLine)
 	word := string(line[:pos])
 	if matches == 0 {
@@ -23,7 +23,7 @@ func (c *CustomCompleter) Do(line []rune, pos int) ([][]rune, int) {
 	}
 	if matches == 1 {
 		c.tabCount = 0
-		return nil, 0
+		return newLine, length
 	}
 
 	longestPrefix := longestCommonPrefix(newLine)
