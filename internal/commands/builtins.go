@@ -68,6 +68,10 @@ func Type(ctx *ShellContext, args []string) {
 	ctx.WriteError(bin + ": not found")
 }
 
+func History(ctx *ShellContext, args []string) {
+
+}
+
 func RunExternalApp(ctx *ShellContext, executable string, args []string) {
 	_, found := findBinInPath(executable)
 	if found {
