@@ -74,7 +74,7 @@ func main() {
 				if i == len(cmds)-1 {
 					cmdOutput = cmd.stdout
 				} else {
-					newR, newW := io.Pipe()
+					newR, newW, _ := os.Pipe()
 					createdFiles = append(createdFiles, newR)
 					createdFiles = append(createdFiles, newW)
 					lastStdin = newR
