@@ -21,12 +21,15 @@ func main() {
 		completerList = append(completerList, readline.PcItem(cmd))
 	}
 	completerList = append(completerList, readline.PcItemDynamic(func(s string) []string {
+		matchCount := 0
 		for _, cmd := range allCommands {
 			if strings.HasPrefix(cmd, s) {
-				return nil
+				matchCount++
 			}
 		}
-		fmt.Print(TerminalBell)
+		if matchCount == 0 || matchCount > 1 {
+			fmt.Print(TerminalBell)
+		}
 		return nil
 	}))
 
