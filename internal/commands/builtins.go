@@ -91,6 +91,27 @@ func History(ctx *ShellContext, args []string) {
 		for scanner.Scan() {
 			AddCommandToHistory(scanner.Text())
 		}
+	case len(args) == 2 && args[0] == "-w":
+		file, err := os.OpenFile(args[1], os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			fmt.Println("Error opening file:", err)
+			return
+		}
+		defer file.Close()
+
+		var message string
+		for i, line := range CommandHistory {
+			if i != len(CommandHistory)-1 {
+				message += line + "\n"
+			} else {
+				message += line
+			}
+		}
+		_, err = fmt.Fprintln(file, message)
+		if err != nil {
+			fmt.Println("Error writing to file:", err)
+			return
+		}
 	}
 	for i, cmd := range histories {
 		ctx.WriteOutput(fmt.Sprintf("%5d %s", baseIndex+i+1, cmd))
