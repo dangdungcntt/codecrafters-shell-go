@@ -69,8 +69,17 @@ func Type(ctx *ShellContext, args []string) {
 }
 
 func History(ctx *ShellContext, args []string) {
-	for i, cmd := range CommandHistory {
-		ctx.WriteOutput(fmt.Sprintf("%5d %s", i+1, cmd))
+	var histories []string
+	var baseIndex int
+	if len(args) == 0 {
+		histories = CommandHistory
+	} else {
+		limit, _ := strconv.Atoi(args[0])
+		baseIndex = limit + 1
+		histories = CommandHistory[max(0, len(CommandHistory)-limit):]
+	}
+	for i, cmd := range histories {
+		ctx.WriteOutput(fmt.Sprintf("%5d %s", baseIndex+i+1, cmd))
 	}
 }
 
