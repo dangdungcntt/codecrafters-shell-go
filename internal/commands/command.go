@@ -50,7 +50,7 @@ type CommandHandler interface {
 
 var CommandMap = map[string]CommandHandler{}
 var CommandHistory = make([]string, 0, 10)
-var LastAppendHistoryIndex = 0
+var LastAppendHistoryIndex = -1
 
 func AddCommandToHistory(cmd string) {
 	CommandHistory = append(CommandHistory, cmd)
