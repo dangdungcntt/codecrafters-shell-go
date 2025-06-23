@@ -28,8 +28,9 @@ func (c *CustomCompleter) Do(line []rune, pos int) ([][]rune, int) {
 
 	longestPrefix := longestCommonPrefix(newLine)
 	if longestPrefix != "" {
-		fmt.Print(longestPrefix)
-		return nil, 0
+		return [][]rune{
+			[]rune(longestPrefix),
+		}, 0
 	}
 
 	if word == c.lastPrefix {
