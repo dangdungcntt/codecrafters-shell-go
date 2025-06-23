@@ -47,10 +47,20 @@ func (c *customCompleter) Do(line []rune, pos int) (newLine [][]rune, length int
 	}
 
 	fmt.Println()
+
+	for i, runes := range newLine {
+		fmt.Printf("%s%s", word, string(runes))
+		if i < matches-1 {
+			fmt.Printf("  ")
+		}
+	}
+
+	fmt.Println()
+
 	fmt.Print("$ " + word)
 	c.tabCount = 0
 
-	return
+	return nil, 0
 }
 
 func main() {
