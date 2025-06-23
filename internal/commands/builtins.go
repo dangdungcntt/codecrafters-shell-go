@@ -19,6 +19,7 @@ func (b BuiltinHandler) Execute(ctx *ShellContext, args []string) {
 func Exit(ctx *ShellContext, args []string) {
 	code, err := strconv.Atoi(args[0])
 	ctx.AssertNoError(err)
+	WriteHistory(true)
 	os.Exit(code)
 }
 
