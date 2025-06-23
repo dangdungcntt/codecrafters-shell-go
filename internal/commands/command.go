@@ -88,7 +88,7 @@ func WriteHistory(isAppend bool) {
 
 	var message string
 	for i, line := range CommandHistory {
-		if isAppend && i <= LastAppendHistoryIndex {
+		if isAppend && i <= LastInitHistoryIndex {
 			continue
 		}
 		if i != len(CommandHistory)-1 {
