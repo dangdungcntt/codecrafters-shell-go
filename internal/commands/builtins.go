@@ -69,7 +69,9 @@ func Type(ctx *ShellContext, args []string) {
 }
 
 func History(ctx *ShellContext, args []string) {
-
+	for i, cmd := range CommandHistory {
+		ctx.WriteOutput(fmt.Sprintf("%5d %s", i+1, cmd))
+	}
 }
 
 func RunExternalApp(ctx *ShellContext, executable string, args []string) {

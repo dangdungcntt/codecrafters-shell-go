@@ -45,6 +45,7 @@ func main() {
 			fmt.Fprintln(os.Stderr, "Error reading input:", err)
 			os.Exit(1)
 		}
+		commands.AddCommandToHistory(raw)
 
 		argv := parseCommand(raw)
 

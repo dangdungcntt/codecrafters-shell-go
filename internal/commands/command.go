@@ -49,6 +49,11 @@ type CommandHandler interface {
 }
 
 var CommandMap = map[string]CommandHandler{}
+var CommandHistory = make([]string, 0, 10)
+
+func AddCommandToHistory(cmd string) {
+	CommandHistory = append(CommandHistory, cmd)
+}
 
 func IsBuiltin(name string) bool {
 	_, found := CommandMap[name]
