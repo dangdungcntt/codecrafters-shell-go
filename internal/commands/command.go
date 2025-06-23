@@ -78,7 +78,7 @@ func Init() []string {
 		allCommands = append(allCommands, c)
 	}
 
-	for _, dirPath := range strings.Split(os.Getenv("PATH"), ":") {
+	for _, dirPath := range strings.Split(os.Getenv("PATH"), string(os.PathListSeparator)) {
 		files, err := os.ReadDir(dirPath)
 		if err != nil {
 			fmt.Errorf("error during reading dir: %v \n", err.Error())

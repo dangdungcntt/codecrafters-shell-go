@@ -13,56 +13,6 @@ import (
 	"unicode"
 )
 
-const TerminalBell = "\x07"
-
-type customCompleter struct {
-	prefixCompleter *readline.PrefixCompleter
-	lastPrefix      string
-	tabCount        int
-}
-
-func (c *customCompleter) Do(line []rune, pos int) (newLine [][]rune, length int) {
-	newLine, length = c.prefixCompleter.Do(line, pos)
-	matches := len(newLine)
-	word := string(line[:pos])
-	if matches == 0 {
-		fmt.Print(TerminalBell)
-		return
-	}
-	if matches == 1 {
-		c.tabCount = 0
-		return
-	}
-
-	if word == c.lastPrefix {
-		c.tabCount++
-	} else {
-		c.tabCount = 1
-	}
-
-	c.lastPrefix = word
-	if c.tabCount == 1 {
-		fmt.Print(TerminalBell)
-		return nil, 0
-	}
-
-	fmt.Println()
-
-	for i, runes := range newLine {
-		fmt.Printf("%s%s", word, string(runes))
-		if i < matches-1 {
-			fmt.Printf(" ")
-		}
-	}
-
-	fmt.Println()
-
-	fmt.Print("$ " + word)
-	c.tabCount = 0
-
-	return nil, 0
-}
-
 func main() {
 	allCommands := commands.Init()
 	slices.SortStableFunc(allCommands, func(a, b string) int {
@@ -74,8 +24,8 @@ func main() {
 		completerList = append(completerList, readline.PcItem(cmd))
 	}
 
-	autoCompleter := &customCompleter{
-		prefixCompleter: readline.NewPrefixCompleter(completerList...),
+	autoCompleter := &commands.CustomCompleter{
+		PrefixCompleter: readline.NewPrefixCompleter(completerList...),
 	}
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:       "$ ",
